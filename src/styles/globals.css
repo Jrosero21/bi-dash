@@ -154,3 +154,29 @@
   --cell-px: 0.5rem;
   --card-p: 0.75rem;
 }
+
+
+/* === Stronger entrance animation (fill-forwards) === */
+@layer utilities {
+  @keyframes fade-up-intense {
+    0%   { opacity: 0; transform: translateY(18px) scale(0.985); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Use CSS vars to tweak without editing CSS again */
+  .fade-up {
+    opacity: 0;
+    animation-name: fade-up-intense;
+    animation-duration: var(--fade-up-duration, 700ms);
+    animation-timing-function: var(--fade-up-ease, cubic-bezier(0.22, 1, 0.36, 1));
+    animation-delay: var(--fade-up-delay, 0ms);
+    animation-fill-mode: forwards; /* <-- keeps final state */
+    will-change: transform, opacity;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .fade-up { animation: none !important; opacity: 1 !important; transform: none !important; }
+}

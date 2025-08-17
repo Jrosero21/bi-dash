@@ -17,6 +17,10 @@ export type DataTableProps<TData, TValue> = {
   data: TData[]
   searchPlaceholder?: string
   filename?: string
+  /** Max table body height (for sticky header). Default: 420 */
+  maxBodyHeightPx?: number
+  /** Page size options for the selector. Default: [10, 25, 50, 100] */
+  pageSizeOptions?: number[]
 }
 
 export default function DataTable<TData, TValue>({
@@ -24,8 +28,10 @@ export default function DataTable<TData, TValue>({
   data,
   searchPlaceholder = "Search…",
   filename = "table.csv",
+  maxBodyHeightPx = 420,
+  pageSizeOptions = [10, 25, 50, 100],
 }: DataTableProps<TData, TValue>) {
-  // Guard against undefined/non-array inputs in dev/StrictMode
+  // Guard against undefined/non-array inputs
   const safeData = (Array.isArray(data) ? data : []) as TData[]
 
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -43,8 +49,13 @@ export default function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    // initial page size
+    initialState: { pagination: { pageSize: pageSizeOptions?.[0] ?? 10 } },
+    // opt into stable row ids if your data has an `id` field:
+    // getRowId: (row: any, index) => row.id ?? index.toString(),
   })
 
+  // Build export rows from visible (pre-pagination) model
   const exportRows = React.useMemo(() => {
     const visibleCols = table.getAllLeafColumns().filter((c) => c.getIsVisible())
     const model = table.getPrePaginationRowModel?.()
@@ -59,6 +70,9 @@ export default function DataTable<TData, TValue>({
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table, columnVisibility, safeData])
+
+  const totalRows = table.getPrePaginationRowModel()?.rows?.length ?? 0
+  const currentRows = table.getRowModel().rows.length
 
   return (
     <div className="rounded-2xl border p-[var(--card-p,1rem)] bg-card">
@@ -76,6 +90,7 @@ export default function DataTable<TData, TValue>({
         </div>
 
         <div className="flex items-center gap-2 text-sm">
+          {/* Column chooser */}
           <details className="rounded-xl border px-3 h-9 flex items-center">
             <summary className="cursor-pointer list-none select-none">Columns</summary>
             <div className="mt-2 p-2 bg-card border rounded-xl shadow-sm min-w-48">
@@ -93,13 +108,35 @@ export default function DataTable<TData, TValue>({
               </div>
             </div>
           </details>
+
+          {/* Page size selector */}
+          <label className="ml-1 text-sm text-muted-foreground" htmlFor="page-size">
+            Rows
+          </label>
+          <select
+            id="page-size"
+            className="h-9 rounded-xl border bg-transparent px-2 text-sm"
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => table.setPageSize(Number(e.target.value))}
+          >
+            {pageSizeOptions.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="mt-4 overflow-x-auto">
+      {/* Table (sticky header + scrollable body) */}
+      <div
+        className="mt-4 overflow-auto rounded-xl border"
+        style={{ maxHeight: `${maxBodyHeightPx}px` }}
+        role="region"
+        aria-label="Data table"
+      >
         <table className="w-full text-sm">
-          <thead className="text-muted-foreground border-b">
+          <thead className="text-muted-foreground bg-card sticky top-0 z-10 border-b">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -127,7 +164,7 @@ export default function DataTable<TData, TValue>({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.length ? (
+            {currentRows ? (
               table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="border-b hover:bg-secondary/40">
                   {row.getVisibleCells().map((cell) => (
@@ -139,7 +176,10 @@ export default function DataTable<TData, TValue>({
               ))
             ) : (
               <tr>
-                <td colSpan={table.getAllLeafColumns().length} className="py-8 text-center text-sm text-muted-foreground">
+                <td
+                  colSpan={table.getAllLeafColumns().length}
+                  className="py-8 text-center text-sm text-muted-foreground"
+                >
                   No matching results.
                 </td>
               </tr>
@@ -151,7 +191,7 @@ export default function DataTable<TData, TValue>({
       {/* Pagination */}
       <div className="mt-4 flex items-center justify-between text-sm">
         <div className="text-muted-foreground">
-          Showing {table.getRowModel().rows.length} of {table.getPrePaginationRowModel()?.rows?.length ?? 0}
+          Showing {currentRows} of {totalRows}
         </div>
 
         <div className="flex items-center gap-2">
