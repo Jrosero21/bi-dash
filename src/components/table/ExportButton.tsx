@@ -14,10 +14,7 @@ export default function ExportButton({
       const s = v == null ? "" : String(v)
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
     }
-    const lines = [
-      headers.join(","),
-      ...items.map((row) => headers.map((h) => esc(row[h])).join(",")),
-    ]
+    const lines = [headers.join(","), ...items.map((row) => headers.map((h) => esc(row[h])).join(","))]
     return lines.join("\n")
   }
 

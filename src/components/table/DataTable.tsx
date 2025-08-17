@@ -1,6 +1,4 @@
-// src/components/table/DataTable.tsx
 "use client"
-
 
 import * as React from "react"
 import {
@@ -11,11 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import type {
-  ColumnDef,
-  SortingState,
-  VisibilityState,
-} from "@tanstack/react-table"
+import type { ColumnDef, SortingState, VisibilityState } from "@tanstack/react-table"
 import ExportButton from "./ExportButton"
 
 export type DataTableProps<TData, TValue> = {
@@ -38,11 +32,7 @@ export default function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    state: {
-      sorting,
-      globalFilter,
-      columnVisibility,
-    },
+    state: { sorting, globalFilter, columnVisibility },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
@@ -52,7 +42,6 @@ export default function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
   })
 
-  // Prepare rows for CSV export (visible columns only)
   const exportRows = React.useMemo(() => {
     const visibleCols = table.getAllLeafColumns().filter((c) => c.getIsVisible())
     return table.getPrePaginationRowModel().rows.map((row) => {
@@ -66,7 +55,7 @@ export default function DataTable<TData, TValue>({
   }, [table])
 
   return (
-    <div className="rounded-2xl border p-4 bg-card">
+    <div className="rounded-2xl border p-[var(--card-p,1rem)] bg-card">
       {/* Toolbar */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
@@ -111,7 +100,7 @@ export default function DataTable<TData, TValue>({
                   <th
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className="text-left py-2 px-3 font-medium cursor-pointer select-none"
+                    className="text-left py-[var(--row-py,0.5rem)] px-[var(--cell-px,0.75rem)] font-medium cursor-pointer select-none"
                     title="Sort"
                     aria-sort={
                       header.column.getIsSorted()
@@ -136,7 +125,7 @@ export default function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="border-b hover:bg-secondary/40">
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="py-2 px-3">
+                    <td key={cell.id} className="py-[var(--row-py,0.5rem)] px-[var(--cell-px,0.75rem)]">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}

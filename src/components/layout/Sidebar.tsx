@@ -2,7 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LineChart, Briefcase, Calculator, Cpu, Settings, Users, Gauge, Building2 } from "lucide-react"
+import {
+  LineChart,
+  Briefcase,
+  Calculator,
+  Cpu,
+  Settings,
+  Users,
+  Gauge,
+  Building2,
+  LayoutDashboard,
+} from "lucide-react"
 
 const links = [
   { href: "/dashboard/executive",    label: "Executive",        icon: LineChart },
@@ -13,11 +23,11 @@ const links = [
   { href: "/dashboard/business",     label: "Business",         icon: Users },
   { href: "/dashboard/intelligence", label: "Intelligence",     icon: Gauge },
   { href: "/dashboard/vendor-relations", label: "Vendor Relations", icon: Building2 },
+  { href: "/dashboard/custom",       label: "Custom Dashboard", icon: LayoutDashboard },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
-
   return (
     <div className="h-screen sticky top-0 p-4 flex flex-col">
       <div className="mb-4">

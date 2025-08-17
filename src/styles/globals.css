@@ -123,3 +123,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+:root {
+  --row-py: 0.5rem;
+  --cell-px: 0.75rem;
+  --card-p: 1rem;
+}
+:root[data-density="compact"] {
+  --row-py: 0.375rem;
+  --cell-px: 0.5rem;
+  --card-p: 0.75rem;
+}

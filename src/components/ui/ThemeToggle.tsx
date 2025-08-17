@@ -1,4 +1,3 @@
-// src/components/ui/ThemeToggle.tsx
 "use client"
 
 import { useTheme } from "next-themes"
@@ -12,7 +11,6 @@ export default function ThemeToggle() {
   if (!mounted) return null
 
   const isDark = theme === "dark"
-
   return (
     <button
       type="button"
