@@ -15,8 +15,8 @@ import ExportButton from "./ExportButton"
 export type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  searchPlaceholder?: string;
-  filename?: string;
+  searchPlaceholder?: string
+  filename?: string
 }
 
 export default function DataTable<TData, TValue>({
@@ -25,12 +25,15 @@ export default function DataTable<TData, TValue>({
   searchPlaceholder = "Search…",
   filename = "table.csv",
 }: DataTableProps<TData, TValue>) {
+  // Guard against undefined/non-array inputs in dev/StrictMode
+  const safeData = (Array.isArray(data) ? data : []) as TData[]
+
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [globalFilter, setGlobalFilter] = React.useState<string>("")
 
   const table = useReactTable({
-    data,
+    data: safeData,
     columns,
     state: { sorting, globalFilter, columnVisibility },
     onSortingChange: setSorting,
@@ -44,7 +47,9 @@ export default function DataTable<TData, TValue>({
 
   const exportRows = React.useMemo(() => {
     const visibleCols = table.getAllLeafColumns().filter((c) => c.getIsVisible())
-    return table.getPrePaginationRowModel().rows.map((row) => {
+    const model = table.getPrePaginationRowModel?.()
+    const rows = model?.rows ?? []
+    return rows.map((row) => {
       const obj: Record<string, unknown> = {}
       visibleCols.forEach((col) => {
         const header = String(col.columnDef.header ?? col.id)
@@ -52,7 +57,8 @@ export default function DataTable<TData, TValue>({
       })
       return obj
     })
-  }, [table])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [table, columnVisibility, safeData])
 
   return (
     <div className="rounded-2xl border p-[var(--card-p,1rem)] bg-card">
@@ -145,7 +151,7 @@ export default function DataTable<TData, TValue>({
       {/* Pagination */}
       <div className="mt-4 flex items-center justify-between text-sm">
         <div className="text-muted-foreground">
-          Showing {table.getRowModel().rows.length} of {table.getPrePaginationRowModel().rows.length}
+          Showing {table.getRowModel().rows.length} of {table.getPrePaginationRowModel()?.rows?.length ?? 0}
         </div>
 
         <div className="flex items-center gap-2">

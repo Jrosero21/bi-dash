@@ -7,6 +7,7 @@ import { useFilters } from "~/components/filter-context"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
 import { X } from "lucide-react"
+import { useSetQuery } from "~/lib/query-state"
 
 interface InteractiveChartProps {
   title: string
@@ -27,23 +28,25 @@ export function InteractiveChart({
 }: InteractiveChartProps) {
   const { filters, setFilter, clearFilter } = useFilters()
   const [activeSelection, setActiveSelection] = useState<string | null>(null)
+  const setQuery = useSetQuery()
 
   const handleChartClick = (data: any) => {
     if (!filterKey || !data) return
-
     const value = data.activeLabel || data.name || data.dataKey
     if (!value) return
 
-    // Toggle selection
+    // Toggle selection + sync URL
     if (activeSelection === value) {
       setActiveSelection(null)
       clearFilter(filterKey)
+      setQuery({ [filterKey]: null })
     } else {
       setActiveSelection(value)
       setFilter(filterKey, value)
+      setQuery({ [filterKey]: String(value) })
     }
 
-    onDataClick?.(filterKey, value)
+    onDataClick?.(filterKey, String(value))
     console.log(`[v0] Chart interaction: ${filterKey} = ${value}`)
   }
 
@@ -65,6 +68,7 @@ export function InteractiveChart({
               onClick={() => {
                 clearFilter(filterKey!)
                 setActiveSelection(null)
+                setQuery({ [filterKey!]: null })
               }}
             >
               <X className="h-3 w-3" />

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Calendar, Filter, X, RotateCcw } from "lucide-react"
 import { useFilters } from "~/components/filter-context"
 import { useState } from "react"
+import { useSetQuery } from "~/lib/query-state"
 
 const filterOptions = {
   timeRange: [
@@ -41,20 +42,22 @@ const filterOptions = {
 export function EnhancedDashboardFilters() {
   const { filters, setFilter, clearFilter, clearAllFilters } = useFilters()
   const [showFilters, setShowFilters] = useState(false)
+  const setQuery = useSetQuery()
 
   const activeFilterCount = Object.keys(filters).filter((key) => filters[key]).length
 
+  // helper that writes both context + URL
+  function setBoth(key: string, val?: string) {
+    setFilter(key, val)
+    setQuery({ [key]: val ?? null })
+  }
+
   return (
     <div className="space-y-4">
-      {/* Filter Toggle and Quick Actions */}
+      {/* Toggle & quick actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
+          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2">
             <Filter className="h-4 w-4" />
             Filters
             {activeFilterCount > 0 && (
@@ -65,15 +68,26 @@ export function EnhancedDashboardFilters() {
           </Button>
 
           {activeFilterCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-muted-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                clearAllFilters()
+                // remove all keys currently set
+                const patch: Record<string, null> = {}
+                Object.keys(filters).forEach((k) => (patch[k] = null))
+                setQuery(patch)
+              }}
+              className="text-muted-foreground"
+            >
               <RotateCcw className="h-4 w-4 mr-1" />
               Clear all
             </Button>
           )}
         </div>
 
-        {/* Quick Time Range */}
-        <Select onValueChange={(value) => setFilter("timeRange", value)} value={filters.timeRange || ""}>
+        {/* Quick time range */}
+        <Select onValueChange={(value) => setBoth("timeRange", value)} value={filters.timeRange || ""}>
           <SelectTrigger className="w-40">
             <Calendar className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Time range" />
@@ -88,7 +102,7 @@ export function EnhancedDashboardFilters() {
         </Select>
       </div>
 
-      {/* Active Filters */}
+      {/* Active chips */}
       {activeFilterCount > 0 && (
         <div className="flex flex-wrap gap-2">
           {Object.entries(filters).map(
@@ -96,7 +110,15 @@ export function EnhancedDashboardFilters() {
               value && (
                 <Badge key={key} variant="secondary" className="flex items-center gap-1">
                   {key}: {value}
-                  <Button variant="ghost" size="sm" className="h-auto p-0 ml-1" onClick={() => clearFilter(key)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 ml-1"
+                    onClick={() => {
+                      clearFilter(key)
+                      setQuery({ [key]: null })
+                    }}
+                  >
                     <X className="h-3 w-3" />
                   </Button>
                 </Badge>
@@ -105,14 +127,14 @@ export function EnhancedDashboardFilters() {
         </div>
       )}
 
-      {/* Expanded Filters */}
+      {/* Expanded filters */}
       {showFilters && (
         <Card>
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Time Range</label>
-                <Select onValueChange={(value) => setFilter("timeRange", value)} value={filters.timeRange || ""}>
+                <Select onValueChange={(value) => setBoth("timeRange", value)} value={filters.timeRange || ""}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select time range" />
                   </SelectTrigger>
@@ -128,7 +150,7 @@ export function EnhancedDashboardFilters() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Region</label>
-                <Select onValueChange={(value) => setFilter("region", value)} value={filters.region || ""}>
+                <Select onValueChange={(value) => setBoth("region", value)} value={filters.region || ""}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
@@ -144,7 +166,7 @@ export function EnhancedDashboardFilters() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Department</label>
-                <Select onValueChange={(value) => setFilter("department", value)} value={filters.department || ""}>
+                <Select onValueChange={(value) => setBoth("department", value)} value={filters.department || ""}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
@@ -160,7 +182,7 @@ export function EnhancedDashboardFilters() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Category</label>
-                <Select onValueChange={(value) => setFilter("category", value)} value={filters.category || ""}>
+                <Select onValueChange={(value) => setBoth("category", value)} value={filters.category || ""}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
