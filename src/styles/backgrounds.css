@@ -1,0 +1,74 @@
+/* === Background Layers for dashboards (light/dark aware) === */
+
+/* 1) Subtle corner spotlights (brand-tinted) */
+.bg-spotlight {
+    background:
+      radial-gradient(640px 320px at 8% -10%, hsl(var(--chart-4)/0.12), transparent 60%),
+      radial-gradient(640px 320px at 92% -10%, hsl(var(--chart-1)/0.12), transparent 60%);
+  }
+  
+  /* 2) Fine grid mesh for structure (very low contrast) */
+  .bg-grid {
+    background-image:
+      linear-gradient(to bottom, hsl(var(--border)/0.6) 1px, transparent 1px),
+      linear-gradient(to right,  hsl(var(--border)/0.6) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: .08;
+  }
+  
+  /* 3) Film grain to avoid gradient banding (SVG fractal noise) */
+  .bg-noise {
+    opacity: .035;
+    mix-blend-mode: overlay;
+    background-size: 160px 160px;
+    background-image:
+      url("data:image/svg+xml;utf8,\
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'>\
+    <filter id='n'>\
+      <feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/>\
+      <feColorMatrix type='saturate' values='0'/>\
+    </filter>\
+    <rect width='100%' height='100%' filter='url(%23n)' opacity='1'/>\
+  </svg>");
+  }
+  
+  /* 4) Soft vignette to calm edges and center focus */
+  .bg-vignette {
+    background:
+      radial-gradient(120% 70% at 50% 30%, transparent 55%, rgba(0,0,0,0.06));
+  }
+  .dark .bg-vignette {
+    background:
+      radial-gradient(120% 70% at 50% 30%, transparent 55%, rgba(255,255,255,0.06));
+  }
+  
+  /* 5) Aurora / Mesh accent (use sparingly) */
+  @keyframes aurora-shift {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(-2%,1%,0) scale(1.03); }
+    100% { transform: translate3d(2%,-1%,0) scale(1.04); }
+  }
+  .animate-aurora { animation: aurora-shift 36s linear infinite alternate; filter: blur(42px); }
+  
+  /* Multi-stop soft color blobs */
+  .bg-aurora {
+    opacity: .45;
+    background:
+      radial-gradient(40% 28% at 15% 10%, hsl(var(--chart-1)/0.28), transparent 60%),
+      radial-gradient(32% 26% at 85% 8%,  hsl(var(--chart-3)/0.24), transparent 60%),
+      radial-gradient(36% 30% at 50% 60%, hsl(var(--chart-4)/0.18), transparent 60%);
+    -webkit-mask: radial-gradient(ellipse at 50% 25%, #000 40%, transparent 75%);
+            mask: radial-gradient(ellipse at 50% 25%, #000 40%, transparent 75%);
+  }
+  
+  /* Constrained mesh (less color than aurora) */
+  .bg-mesh {
+    opacity: .35;
+    background:
+      radial-gradient(30% 24% at 15% 0%,  hsl(var(--chart-2)/0.14), transparent 60%),
+      radial-gradient(24% 20% at 85% 6%,  hsl(var(--chart-5)/0.14), transparent 60%),
+      radial-gradient(36% 26% at 50% 50%, hsl(var(--chart-3)/0.10), transparent 60%);
+    -webkit-mask: radial-gradient(ellipse at 50% 30%, #000 50%, transparent 85%);
+            mask: radial-gradient(ellipse at 50% 30%, #000 50%, transparent 85%);
+  }
+  

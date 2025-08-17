@@ -8,59 +8,46 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  type ColumnDef,
+  type SortingState,
+  type VisibilityState,
 } from "@tanstack/react-table"
-import type { ColumnDef, SortingState, VisibilityState } from "@tanstack/react-table"
 import ExportButton from "./ExportButton"
 
-export type DataTableProps<TData, TValue> = {
-  columns: ColumnDef<TData, TValue>[]
+export type DataTableProps<TData> = {
+  columns: ColumnDef<TData, any>[]
   data: TData[]
   searchPlaceholder?: string
   filename?: string
-  /** Max table body height (for sticky header). Default: 420 */
-  maxBodyHeightPx?: number
-  /** Page size options for the selector. Default: [10, 25, 50, 100] */
-  pageSizeOptions?: number[]
 }
 
-export default function DataTable<TData, TValue>({
+export default function DataTable<TData>({
   columns,
   data,
   searchPlaceholder = "Search…",
   filename = "table.csv",
-  maxBodyHeightPx = 420,
-  pageSizeOptions = [10, 25, 50, 100],
-}: DataTableProps<TData, TValue>) {
-  // Guard against undefined/non-array inputs
-  const safeData = (Array.isArray(data) ? data : []) as TData[]
-
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [globalFilter, setGlobalFilter] = React.useState<string>("")
 
   const table = useReactTable({
-    data: safeData,
+    data,
     columns,
-    state: { sorting, globalFilter, columnVisibility },
+    state: { sorting, columnVisibility, globalFilter },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    // initial page size
-    initialState: { pagination: { pageSize: pageSizeOptions?.[0] ?? 10 } },
-    // opt into stable row ids if your data has an `id` field:
-    // getRowId: (row: any, index) => row.id ?? index.toString(),
   })
 
-  // Build export rows from visible (pre-pagination) model
+  // rows for CSV (visible columns only)
   const exportRows = React.useMemo(() => {
     const visibleCols = table.getAllLeafColumns().filter((c) => c.getIsVisible())
-    const model = table.getPrePaginationRowModel?.()
-    const rows = model?.rows ?? []
-    return rows.map((row) => {
+    return table.getPrePaginationRowModel().rows.map((row) => {
       const obj: Record<string, unknown> = {}
       visibleCols.forEach((col) => {
         const header = String(col.columnDef.header ?? col.id)
@@ -68,152 +55,109 @@ export default function DataTable<TData, TValue>({
       })
       return obj
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [table, columnVisibility, safeData])
-
-  const totalRows = table.getPrePaginationRowModel()?.rows?.length ?? 0
-  const currentRows = table.getRowModel().rows.length
+  }, [table, columnVisibility, sorting, globalFilter, data])
 
   return (
-    <div className="rounded-2xl border p-[var(--card-p,1rem)] bg-card">
-      {/* Toolbar */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <input
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            placeholder={searchPlaceholder}
-            className="h-9 w-64 rounded-xl border bg-transparent px-3 text-sm outline-none"
-            aria-label="Global search"
-          />
-          <ExportButton filename={filename} rows={exportRows} />
-        </div>
-
-        <div className="flex items-center gap-2 text-sm">
-          {/* Column chooser */}
-          <details className="rounded-xl border px-3 h-9 flex items-center">
-            <summary className="cursor-pointer list-none select-none">Columns</summary>
-            <div className="mt-2 p-2 bg-card border rounded-xl shadow-sm min-w-48">
-              <div className="space-y-1">
-                {table.getAllLeafColumns().map((column) => (
-                  <label key={column.id} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={column.getIsVisible()}
-                      onChange={column.getToggleVisibilityHandler()}
-                    />
-                    <span>{String(column.columnDef.header ?? column.id)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </details>
-
-          {/* Page size selector */}
-          <label className="ml-1 text-sm text-muted-foreground" htmlFor="page-size">
-            Rows
-          </label>
-          <select
-            id="page-size"
-            className="h-9 rounded-xl border bg-transparent px-2 text-sm"
-            value={table.getState().pagination.pageSize}
-            onChange={(e) => table.setPageSize(Number(e.target.value))}
-          >
-            {pageSizeOptions.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+    <div className="space-y-3">
+      {/* toolbar */}
+      <div className="flex items-center gap-2">
+        <input
+          value={globalFilter ?? ""}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder={searchPlaceholder}
+          className="w-full max-w-xs rounded-xl border bg-card/70 px-3 py-2 text-sm
+                     supports-[backdrop-filter]:backdrop-blur focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <div className="ml-auto flex items-center gap-2">
+          <ColumnVisibility table={table} />
+          <ExportButton rows={exportRows} filename={filename} />
         </div>
       </div>
 
-      {/* Table (sticky header + scrollable body) */}
-      <div
-        className="mt-4 overflow-auto rounded-xl border"
-        style={{ maxHeight: `${maxBodyHeightPx}px` }}
-        role="region"
-        aria-label="Data table"
-      >
-        <table className="w-full text-sm">
-          <thead className="text-muted-foreground bg-card sticky top-0 z-10 border-b">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+      {/* table */}
+      <div className="overflow-x-auto rounded-2xl border bg-card/70 supports-[backdrop-filter]:backdrop-blur ring-1 ring-inset ring-[hsl(var(--ring)/0.06)]">
+        <table className="min-w-full text-sm">
+          <thead className="bg-muted/40 text-muted-foreground">
+            {table.getHeaderGroups().map((hg) => (
+              <tr key={hg.id}>
+                {hg.headers.map((header) => (
                   <th
                     key={header.id}
-                    onClick={header.column.getToggleSortingHandler()}
-                    className="text-left py-[var(--row-py,0.5rem)] px-[var(--cell-px,0.75rem)] font-medium cursor-pointer select-none"
-                    title="Sort"
-                    aria-sort={
-                      header.column.getIsSorted()
-                        ? (header.column.getIsSorted() as "ascending" | "descending")
-                        : "none"
-                    }
+                    colSpan={header.colSpan}
+                    className="px-[var(--cell-px)] py-2 text-left font-medium"
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                    {{
-                      asc: " ▲",
-                      desc: " ▼",
-                    }[header.column.getIsSorted() as string] ?? null}
+                    {header.isPlaceholder ? null : (
+                      <button
+                        className="inline-flex items-center gap-1 hover:underline"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {({ asc: "↑", desc: "↓" } as any)[header.column.getIsSorted() as string] ?? null}
+                      </button>
+                    )}
                   </th>
                 ))}
               </tr>
             ))}
           </thead>
           <tbody>
-            {currentRows ? (
-              table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b hover:bg-secondary/40">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="py-[var(--row-py,0.5rem)] px-[var(--cell-px,0.75rem)]">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={table.getAllLeafColumns().length}
-                  className="py-8 text-center text-sm text-muted-foreground"
-                >
-                  No matching results.
-                </td>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id} className="odd:bg-card/40">
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className="px-[var(--cell-px)] py-[var(--row-py)]">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="mt-4 flex items-center justify-between text-sm">
-        <div className="text-muted-foreground">
-          Showing {currentRows} of {totalRows}
+      {/* pagination */}
+      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+        <div>
+          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() || 1}
         </div>
-
         <div className="flex items-center gap-2">
           <button
-            className="rounded-xl border px-3 h-8 hover:bg-secondary disabled:opacity-50"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            className="rounded-xl border bg-card/70 px-3 py-1.5 disabled:opacity-50"
           >
-            Prev
+            Previous
           </button>
-          <span>
-            Page <strong>{table.getState().pagination.pageIndex + 1}</strong> of {table.getPageCount()}
-          </span>
           <button
-            className="rounded-xl border px-3 h-8 hover:bg-secondary disabled:opacity-50"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            className="rounded-xl border bg-card/70 px-3 py-1.5 disabled:opacity-50"
           >
             Next
           </button>
         </div>
       </div>
     </div>
+  )
+}
+
+/* column visibility dropdown (simple) */
+function ColumnVisibility({ table }: { table: ReturnType<typeof useReactTable<any>> }) {
+  const all = table.getAllLeafColumns()
+  return (
+    <details className="rounded-xl border bg-card/70 px-3 py-2 text-xs supports-[backdrop-filter]:backdrop-blur">
+      <summary className="cursor-pointer select-none">Columns</summary>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {all.map((col) => (
+          <label key={col.id} className="inline-flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={col.getIsVisible()}
+              onChange={col.getToggleVisibilityHandler()}
+            />
+            <span className="truncate">{String(col.columnDef.header ?? col.id)}</span>
+          </label>
+        ))}
+      </div>
+    </details>
   )
 }
