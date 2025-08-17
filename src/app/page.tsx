@@ -1,53 +1,50 @@
-import Link from "next/link";
+"use client"
 
-import { LatestPost } from "~/app/_components/post";
-import { api, HydrateClient } from "~/trpc/server";
+import Link from "next/link"
+import { Gauge, Briefcase, Calculator, Cpu, Settings, Users, LineChart } from "lucide-react"
 
-export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
+const tiles = [
+  { href: "/dashboard/executive",     title: "Executive",     desc: "Company-wide KPIs & trends",      icon: LineChart },
+  { href: "/dashboard/sales",         title: "Sales",         desc: "Revenue, cash collected, pipeline", icon: Briefcase },
+  { href: "/dashboard/accounting",    title: "Accounting",    desc: "Budget vs revenue, margins",      icon: Calculator },
+  { href: "/dashboard/it",            title: "IT",            desc: "Uptime, security, infra costs",   icon: Cpu },
+  { href: "/dashboard/operations",    title: "Operations",    desc: "Efficiency, throughput, quality", icon: Settings },
+  { href: "/dashboard/business",      title: "Business",      desc: "Units, markets, customers",       icon: Users },
+  { href: "/dashboard/intelligence",  title: "Intelligence",  desc: "ML models, data quality",         icon: Gauge },
+]
 
-  void api.post.getLatest.prefetch();
-
+export default function Home() {
   return (
-    <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
-          </div>
+    <div className="space-y-8">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">KPI Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          Choose a department to explore interactive metrics and reports.
+        </p>
+      </header>
 
-          <LatestPost />
-        </div>
-      </main>
-    </HydrateClient>
-  );
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        {tiles.map(({ href, title, desc, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="group rounded-2xl border p-5 bg-card hover:shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl border bg-secondary text-secondary-foreground p-2">
+                <Icon className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-medium">{title}</h3>
+                <p className="text-xs text-muted-foreground">{desc}</p>
+              </div>
+            </div>
+            <div className="mt-4 text-xs text-muted-foreground">
+              View dashboards &rarr;
+            </div>
+          </Link>
+        ))}
+      </section>
+    </div>
+  )
 }
