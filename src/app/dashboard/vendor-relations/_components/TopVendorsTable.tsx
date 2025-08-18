@@ -1,9 +1,11 @@
-// src/app/dashboard/vendor-relations/TopVendorsTable.tsx
 "use client"
 
 import * as React from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import DataTable from "~/components/table/DataTable"
+
+// ⚠️ Relative path from: src/app/dashboard/vendor-relations/components/
+// to:                    src/components/table/DataTable.tsx
+import DataTable from "../../../../components/table/DataTable"
 
 export type RiskLevel = "Low" | "Medium" | "High"
 
@@ -70,8 +72,6 @@ export default function TopVendorsTable({ data }: { data: Vendor[] }) {
   return (
     <div className="space-y-2">
       <h3 className="text-base font-medium">Top Vendors</h3>
-
-      {/* NOTE: DataTable has a single generic now */}
       <DataTable<Vendor>
         columns={columns}
         data={rows}

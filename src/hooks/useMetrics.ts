@@ -1,11 +1,29 @@
 "use client"
 
 import * as React from "react"
-import { getJSON } from "~/lib/api"
-import { MetricsResponse, type TMetricsResponse } from "../lib/schema"
+
+type RevenuePoint = { month: string; revenue: number; profit: number; expenses: number }
+type Vendor = { name: string; spend: number; performance: number; risk: "Low" | "Medium" | "High" }
+type MetricsResponse = {
+  kpis: {
+    revenueYTD: number
+    activeCustomers: number
+    grossMargin: number
+    nps: number
+    delta: {
+      revenueYTD: number
+      activeCustomers: number
+      grossMargin: number
+      nps: number
+    }
+  }
+  series: { revenue: RevenuePoint[] }
+  vendors: Vendor[]
+  generatedAt: string
+}
 
 export function useMetrics() {
-  const [data, setData] = React.useState<TMetricsResponse | null>(null)
+  const [data, setData] = React.useState<MetricsResponse | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<Error | null>(null)
 
@@ -13,8 +31,10 @@ export function useMetrics() {
     setLoading(true)
     setError(null)
     try {
-      const res = await getJSON("/api/metrics", MetricsResponse)
-      setData(res)
+      const res = await fetch("/api/metrics", { cache: "no-store" })
+      if (!res.ok) throw new Error(`Failed: ${res.status}`)
+      const json = (await res.json()) as MetricsResponse
+      setData(json)
     } catch (e) {
       setError(e as Error)
     } finally {

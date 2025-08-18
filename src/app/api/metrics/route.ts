@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-// Simple seeded PRNG so numbers are stable across reloads
+// Simple seeded PRNG so numbers are stable across a day
 function mulberry32(seed: number) {
   return function () {
     let t = (seed += 0x6d2b79f5)
@@ -11,11 +11,10 @@ function mulberry32(seed: number) {
 }
 
 export async function GET() {
-  // seed from YYYYMMDD so it looks “live” per day
   const d = new Date()
-  const seed = Number(`${d.getFullYear()}${(d.getMonth() + 1)
-    .toString()
-    .padStart(2, "0")}${d.getDate().toString().padStart(2, "0")}`)
+  const seed = Number(
+    `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`
+  )
   const rnd = mulberry32(seed)
 
   const revenueYTD = Math.round(10_000_000 + rnd() * 8_000_000)
@@ -23,7 +22,6 @@ export async function GET() {
   const grossMargin = Math.round(56 + rnd() * 14) // 56–70%
   const nps = Math.round(35 + rnd() * 20) // 35–55
 
-  // monthly series (6 pts)
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
   const revenueSeries = months.map((m, i) => {
     const base = 1_800_000 + i * 120_000
@@ -34,12 +32,10 @@ export async function GET() {
     return { month: m, revenue, profit, expenses }
   })
 
-  // pretend vendor spend
   const topVendors = Array.from({ length: 6 }).map((_, i) => {
     const spend = Math.round(600_000 + rnd() * 2_000_000)
     const performance = Math.round(85 + rnd() * 12)
-    const risks = ["Low", "Medium", "High"] as const
-    const risk = risks[Math.min(2, Math.floor(rnd() * 3))]
+    const risk = (["Low", "Medium", "High"] as const)[Math.min(2, Math.floor(rnd() * 3))]
     return { name: `Vendor ${i + 1}`, spend, performance, risk }
   })
 
@@ -49,9 +45,8 @@ export async function GET() {
       activeCustomers,
       grossMargin,
       nps,
-      // daily deltas so your arrows can flip
       delta: {
-        revenueYTD: +(rnd() * 8 - 4).toFixed(1), // -4%..+4%
+        revenueYTD: +(rnd() * 8 - 4).toFixed(1),
         activeCustomers: +(rnd() * 6 - 3).toFixed(1),
         grossMargin: +(rnd() * 3 - 1.5).toFixed(1),
         nps: +(rnd() * 6 - 3).toFixed(1),

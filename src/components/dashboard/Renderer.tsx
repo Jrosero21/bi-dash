@@ -1,8 +1,8 @@
 "use client"
 
-import type { DashboardConfig } from "~/lib/dashboard/types"
-import KpiBlock from "~/components/dashboard/blocks/KpiBlock"
-import ChartBlock from "~/components/dashboard/blocks/ChartBlock"
+import type { DashboardConfig } from "../../lib/dashboard/types"
+import KpiBlock from "./blocks/KpiBlock"
+import ChartBlock from "./blocks/ChartBlock"
 
 export default function DashboardRenderer({ config }: { config: DashboardConfig }) {
   return (

@@ -1,7 +1,7 @@
 "use client"
 
-import { useMetrics } from "~/hooks/useMetrics"
-import { KPICard } from "~/components/kpi-card"
+import { useMetrics } from "../../../hooks/useMetrics"
+import { KPICard } from "../../../components/kpi-card"
 import { DollarSign, Users, LineChart, SmilePlus } from "lucide-react"
 
 export default function GlobalKpisRemote() {
@@ -44,7 +44,7 @@ export default function GlobalKpisRemote() {
         changeLabel="vs 30d"
         trend={kpis.delta.activeCustomers >= 0 ? "up" : "down"}
         icon={<Users className="h-4 w-4" />}
-        className="bg-gradient-to-br from-chart-2/5 to-chart-2/10 border-chart-2/20"
+        className="bg-gradient-to-br from-[hsl(var(--chart-2))]/10 to-[hsl(var(--chart-2))]/5 border-[hsl(var(--chart-2))]/20"
       />
       <KPICard
         title="Gross Margin"
@@ -54,7 +54,7 @@ export default function GlobalKpisRemote() {
         changeLabel="vs quarter"
         trend={kpis.delta.grossMargin >= 0 ? "up" : "down"}
         icon={<LineChart className="h-4 w-4" />}
-        className="bg-gradient-to-br from-chart-3/5 to-chart-3/10 border-chart-3/20"
+        className="bg-gradient-to-br from-[hsl(var(--chart-3))]/10 to-[hsl(var(--chart-3))]/5 border-[hsl(var(--chart-3))]/20"
       />
       <KPICard
         title="NPS"
@@ -63,7 +63,7 @@ export default function GlobalKpisRemote() {
         changeLabel="new survey"
         trend={kpis.delta.nps >= 0 ? "up" : "down"}
         icon={<SmilePlus className="h-4 w-4" />}
-        className="bg-gradient-to-br from-chart-4/5 to-chart-4/10 border-chart-4/20"
+        className="bg-gradient-to-br from-[hsl(var(--chart-4))]/10 to-[hsl(var(--chart-4))]/5 border-[hsl(var(--chart-4))]/20"
       />
     </div>
   )

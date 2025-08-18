@@ -1,53 +1,21 @@
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request) {
-  // read optional query params: ?dept=sales&range=30d
-  const { searchParams } = new URL(request.url)
-  const dept = (searchParams.get("dept") ?? "company").toLowerCase()
-  const range = (searchParams.get("range") ?? "30d").toLowerCase()
+export async function GET() {
+  const now = new Date()
+  const hour = now.getHours()
+  const window = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening"
 
-  // fake-but-plausible aggregated metrics
-  const metrics = {
-    revenue: 12_450_000,
-    growth: 8.4,
-    churn: 1.7,
-    margin: 61.8,
-    nps: 47,
-  }
+  // Lightweight, deterministic-ish blurb so demos look “alive”
+  const tips = [
+    "Revenue growth outpaced quarterly target—consider reallocating spend toward top-performing regions.",
+    "Customer activity is trending up; a retention campaign could compound gains.",
+    "Gross margin variance narrowed; review vendor terms to lock in improvements.",
+    "NPS rose on the latest pulse—double down on the feature areas mentioned in feedback.",
+  ]
+  const tip = tips[hour % tips.length]
 
-  const text = generateInsight({ dept, range, ...metrics })
-  return NextResponse.json({ text })
-}
-
-function generateInsight({
-  dept,
-  range,
-  revenue,
-  growth,
-  churn,
-  margin,
-  nps,
-}: {
-  dept: string
-  range: string
-  revenue: number
-  growth: number
-  churn: number
-  margin: number
-  nps: number
-}) {
-  const prettyRevenue = new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(revenue)
-
-  const dir = growth >= 0 ? "↑" : "↓"
-  const risk = churn > 2.5 ? "Watch churn and retention levers." : "Churn remains healthy."
-
-  return `In the last ${range}, ${dept} is tracking ${dir} ${Math.abs(growth).toFixed(
-    1
-  )}% with ${prettyRevenue} YTD, margin ${margin.toFixed(
-    1
-  )}%, churn ${churn.toFixed(1)}%, NPS ${nps}. ${risk}`
+  return NextResponse.json({
+    text: `Good ${window}! ${tip}`,
+    generatedAt: now.toISOString(),
+  })
 }

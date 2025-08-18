@@ -2,10 +2,13 @@
 
 import { useMemo } from "react"
 import { useSearchParams } from "next/navigation"
-import { KPICard } from "~/components/kpi-card"
-import { ChartContainer } from "~/components/chart-container"
-import UnifiedFilters from "~/components/filters/UnifiedFilters"
-import TopVendorsTable, { type Vendor } from "./components/TopVendorsTable"
+
+import { KPICard } from "../../../components/kpi-card"
+import { ChartContainer } from "../../../components/chart-container"
+import { EnhancedDashboardFilters } from "../../../components/enhanced-dashboard-filters"
+
+// NOTE: this is now pointing to the components subfolder:
+import TopVendorsTable, { type Vendor } from "../vendor-relations/_components/TopVendorsTable"
 
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -47,11 +50,11 @@ const REGION_MULT = {
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun"] as const
 function sliceByRange(range: string) {
   switch (range) {
-    case "7D":  return MONTHS.slice(-2) // ~2 months
-    case "30D": return MONTHS.slice(-3) // 3 months
-    case "90D": return MONTHS.slice(-6) // 6 months
+    case "7D":  return MONTHS.slice(-2) // ~2 months view
+    case "30D": return MONTHS.slice(-3)
+    case "90D": return MONTHS.slice(-6)
     case "QTD": return MONTHS.slice(-3)
-    case "YTD": return MONTHS          // same as 6 here
+    case "YTD": return MONTHS
     default:    return MONTHS.slice(-3)
   }
 }
@@ -116,7 +119,6 @@ export default function VendorRelationsDashboard() {
 
   // 1) Performance by month (adjusted by region; sliced by range)
   const vendorPerformance = useMemo(() => {
-    // small per-region tweaks for realism
     const tweak = region === "na" ? 0.5 : region === "emea" ? -0.3 : region === "apac" ? 0.2 : region === "latam" ? -0.8 : 0
     return BASE_VENDOR_PERF
       .map(d => ({
@@ -181,7 +183,7 @@ export default function VendorRelationsDashboard() {
     <div className="space-y-6" aria-label="Vendor Relations Dashboard">
       {/* Filters row */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <UnifiedFilters />
+        <EnhancedDashboardFilters />
       </div>
 
       {/* KPIs (now dynamic) */}

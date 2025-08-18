@@ -28,14 +28,12 @@ export default function KpiBlock({ block }: { block: TKpiBlock }) {
             changeLabel="vs prior"
             trend={trend}
             icon={<Icon className="h-4 w-4" />}
-            className={
-              [
-                "bg-gradient-to-br border",
-                `from-[hsl(var(--chart-${(i % 4) + 1}))]/10`,
-                `to-[hsl(var(--chart-${((i + 1) % 4) + 1}))]/5`,
-                `border-[hsl(var(--chart-${(i % 4) + 1}))]/25`,
-              ].join(" ")
-            }
+            className={[
+              "bg-gradient-to-br border",
+              `from-[hsl(var(--chart-${(i % 4) + 1}))]/10`,
+              `to-[hsl(var(--chart-${((i + 1) % 4) + 1}))]/5`,
+              `border-[hsl(var(--chart-${(i % 4) + 1}))]/25`,
+            ].join(" ")}
           />
         )
       })}

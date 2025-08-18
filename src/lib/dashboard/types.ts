@@ -8,9 +8,9 @@ export type ChartBlock = {
   data: Record<string, unknown>[]
   xKey?: string
   yKeys?: string[]
-  valueKey?: string // for pie
+  valueKey?: string // for pie charts
   height?: number
-  colorKeys?: string[] // CSS vars e.g. ["--chart-1", ...]
+  colorKeys?: string[] // CSS vars, e.g. ["--chart-1", "--chart-2"]
 }
 
 export type KpiIcon = "dollar" | "users" | "margin" | "nps" | "generic"
