@@ -2,116 +2,99 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import {
-  Moon,
-  SunMedium,
+  Home,
   Search,
-  SlidersHorizontal,
-  PanelLeft,
+  SunMedium,
+  Moon,
+  Menu,
   X,
-  LayoutGrid,
-  LineChart,
-  Briefcase,
-  Calculator,
-  Cpu,
-  Settings,
-  Users,
-  Gauge,
-  Building2,
-  LayoutDashboard,
+  SlidersHorizontal, // density
 } from "lucide-react"
-
-type Item = { href: string; label: string; icon: any }
-
-// Keep mobile & desktop menus in sync
-const items: Item[] = [
-  { href: "/dashboard/executive", label: "Executive", icon: LineChart },
-  { href: "/dashboard/sales", label: "Sales", icon: Briefcase },
-  { href: "/dashboard/accounting", label: "Accounting", icon: Calculator },
-  { href: "/dashboard/it", label: "IT", icon: Cpu },
-  { href: "/dashboard/operations", label: "Operations", icon: Settings },
-  { href: "/dashboard/business", label: "Business", icon: Users },
-  { href: "/dashboard/intelligence", label: "Intelligence", icon: Gauge },
-  { href: "/dashboard/vendor-relations", label: "Vendor Relations", icon: Building2 },
-  { href: "/dashboard/custom", label: "Custom Dashboard", icon: LayoutDashboard },
-]
+import { navItems } from "./Sidebar"
 
 export default function Header() {
   const { theme, setTheme } = useTheme()
-  const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = React.useState(false)
-
-  // density toggle writes to <html data-density="..."> (used by globals.css)
   const [density, setDensity] = React.useState<"comfortable" | "compact">(
-    (typeof document !== "undefined" &&
-      (document.documentElement.getAttribute("data-density") as "comfortable" | "compact")) || "comfortable",
+    (typeof window !== "undefined" && (document.documentElement.dataset.density as any)) || "comfortable",
   )
+
+  // Density toggle writes to :root dataset so table/card spacing follows
+  const toggleDensity = React.useCallback(() => {
+    setDensity((d) => {
+      const next = d === "comfortable" ? "compact" : "comfortable"
+      if (typeof window !== "undefined") {
+        if (next === "compact") document.documentElement.setAttribute("data-density", "compact")
+        else document.documentElement.removeAttribute("data-density")
+      }
+      return next
+    })
+  }, [])
+
+  // Mobile drawer using <dialog>
+  const dialogRef = React.useRef<HTMLDialogElement | null>(null)
+  const openDrawer = () => dialogRef.current?.showModal()
+  const closeDrawer = () => dialogRef.current?.close()
+
   React.useEffect(() => {
-    document.documentElement.setAttribute("data-density", density)
-  }, [density])
+    if (!dialogRef.current) return
+    const onCancel = (e: Event) => {
+      e.preventDefault()
+      closeDrawer()
+    }
+    dialogRef.current.addEventListener("cancel", onCancel)
+    return () => dialogRef.current?.removeEventListener("cancel", onCancel)
+  }, [])
 
   return (
-    <>
-      <header
-        className="sticky top-0 z-30 mb-6 border-b bg-background/70 supports-[backdrop-filter]:backdrop-blur
-                   shadow-[inset_0_1px_0_hsl(var(--border))]"
-      >
-        <div className="mx-auto max-w-screen-2xl">
-          <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
-            {/* Mobile menu button (only < lg) */}
-            <button
-              onClick={() => setMobileOpen(true)}
-              className="inline-flex lg:hidden h-9 w-9 items-center justify-center rounded-xl border bg-card/70
-                         supports-[backdrop-filter]:backdrop-blur"
-              aria-label="Open navigation"
-            >
-              <PanelLeft className="h-4 w-4" />
-            </button>
+    <div className="sticky top-0 z-30 border-b bg-background/80 supports-[backdrop-filter]:backdrop-blur">
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
+        <div className="flex h-14 items-center gap-3">
+          {/* Mobile: hamburger */}
+          <button
+            className="lg:hidden inline-flex items-center justify-center rounded-md border px-2.5 py-2"
+            onClick={openDrawer}
+            aria-label="Open menu"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
 
-            {/* Breadcrumb / Home link */}
-            <div className="hidden md:flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-              <Link href="/" className="rounded-md px-1 py-0.5 hover:text-foreground hover:underline">
-                Home
-              </Link>
-              {pathname !== "/" && (
-                <>
-                  <span aria-hidden>·</span>
-                  <span className="truncate">{pathname.replace(/^\/+/, "")}</span>
-                </>
-              )}
-            </div>
+          {/* Home breadcrumb */}
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-md border px-2.5 py-2 text-sm hover:bg-card"
+            aria-label="Home"
+          >
+            <Home className="h-4 w-4" />
+            <span className="hidden sm:inline">Home</span>
+          </Link>
 
-            {/* Search (flex-1 keeps things aligned) */}
-            <div className="relative ml-auto w-full max-w-xl">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {/* Search */}
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <div className="relative hidden sm:flex">
               <input
-                type="search"
-                placeholder="Search dashboards…"
-                className="w-full rounded-xl border bg-card/70 pl-9 pr-3 py-2 text-sm
-                           supports-[backdrop-filter]:backdrop-blur
-                           placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Search dashboards..."
+                className="w-64 rounded-md border bg-card px-8 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
 
             {/* Density */}
             <button
-              onClick={() => setDensity(density === "comfortable" ? "compact" : "comfortable")}
-              className="hidden sm:inline-flex h-9 items-center gap-2 rounded-xl border bg-card/70 px-3 text-xs
-                         hover:bg-secondary supports-[backdrop-filter]:backdrop-blur"
+              onClick={toggleDensity}
+              className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-2 text-sm hover:bg-card"
               aria-label="Toggle density"
               title="Toggle density"
             >
               <SlidersHorizontal className="h-4 w-4" />
-              {density === "comfortable" ? "Compact" : "Comfortable"}
+              <span className="hidden md:inline">{density === "compact" ? "Compact" : "Comfortable"}</span>
             </button>
 
             {/* Theme */}
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="inline-flex h-9 items-center justify-center rounded-xl border bg-card/70 px-3
-                         hover:bg-secondary supports-[backdrop-filter]:backdrop-blur"
+              className="inline-flex items-center justify-center rounded-md border p-2"
               aria-label="Toggle theme"
               title="Toggle theme"
             >
@@ -119,68 +102,33 @@ export default function Header() {
             </button>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="lg:hidden">
-          {/* Backdrop */}
-          <button
-            aria-label="Close navigation"
-            onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm"
-          />
-          {/* Panel */}
-          <div
-            className="fixed inset-y-0 left-0 z-50 w-72 border-r bg-sidebar p-3
-                       supports-[backdrop-filter]:backdrop-blur-xl"
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="flex items-center gap-2 px-1 pb-3 border-b">
-              <div className="grid place-items-center size-8 rounded-md border bg-card/70">
-                <LayoutGrid className="h-4 w-4" />
-              </div>
-              <span className="text-sm font-medium">Dashboard</span>
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-card/70"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <nav className="mt-3 space-y-1">
-              {items.map(({ href, label, icon: Icon }) => {
-                const active = pathname.startsWith(href)
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`group flex items-center gap-2 rounded-lg border px-3 py-2 text-sm
-                                transition-all
-                                ${active
-                                  ? "bg-card/80 text-foreground border-[hsl(var(--ring)/0.35)] shadow-[0_0_0_1px_hsl(var(--ring)/0.25)]"
-                                  : "bg-card/60 text-muted-foreground hover:text-foreground hover:bg-card/80"} `}
-                  >
-                    <span className={`grid place-items-center rounded-md border p-1.5
-                                       ${active ? "border-[hsl(var(--ring)/0.35)]" : ""}`}>
-                      <Icon className={`h-4 w-4 ${active ? "text-[hsl(var(--chart-2))]" : ""}`} />
-                    </span>
-                    <span className="truncate">{label}</span>
-                    <span
-                      className={`ml-auto size-1.5 rounded-full transition-opacity
-                                  ${active ? "opacity-100 bg-[hsl(var(--chart-2))]" : "opacity-0 group-hover:opacity-60 bg-muted-foreground"}`}
-                    />
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
+      {/* Mobile Drawer */}
+      <dialog
+        ref={dialogRef}
+        className="backdrop:bg-black/40 rounded-xl p-0 border w-[90vw] max-w-sm"
+      >
+        <div className="flex items-center justify-between border-b p-3">
+          <span className="text-sm font-medium">Menu</span>
+          <button onClick={closeDrawer} className="rounded-md border p-1.5" aria-label="Close menu">
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      )}
-    </>
+        <nav className="p-2">
+          {navItems.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={closeDrawer}
+              className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-card/80"
+            >
+              <Icon className="h-4 w-4 text-[hsl(var(--chart-1))]" />
+              <span>{label}</span>
+            </Link>
+          ))}
+        </nav>
+      </dialog>
+    </div>
   )
 }

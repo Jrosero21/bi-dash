@@ -1,9 +1,11 @@
 "use client"
+
 import { KPICard } from "~/components/kpi-card"
 import { ChartContainer } from "~/components/chart-container"
 import { EnhancedDashboardFilters } from "~/components/enhanced-dashboard-filters"
 import { InteractiveChart } from "~/components/interactive-chart"
 import { useFilters } from "~/components/filter-context"
+
 import {
   LineChart,
   Line,
@@ -22,6 +24,7 @@ import {
   AreaChart,
   Area,
 } from "recharts"
+
 import { TrendingUp, DollarSign, Users, Target, Building, Globe, Award, Zap } from "lucide-react"
 
 const chartColors = [
@@ -35,7 +38,7 @@ const chartColors = [
   "#84CC16", // Lime
 ]
 
-// Sample data for charts
+// Sample data
 const revenueData = [
   { month: "Jan", revenue: 2400000, profit: 400000, expenses: 2000000 },
   { month: "Feb", revenue: 2100000, profit: 300000, expenses: 1800000 },
@@ -157,20 +160,16 @@ const quarterlyGrowth = [
 ]
 
 const formatCurrency = (value: number) => {
-  if (value >= 1000000) {
-    return `$${(value / 1000000).toFixed(1)}M`
-  } else if (value >= 1000) {
-    return `$${(value / 1000).toFixed(0)}k`
-  } else {
-    return `$${value}`
-  }
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}k`
+  return `$${value}`
 }
 
 export default function ExecutiveDashboard() {
   const { filters, getFilteredData } = useFilters()
 
-  const filteredRevenueData = getFilteredData(revenueData, (item, filters) => {
-    if (filters.timeRange && filters.timeRange !== "30d") return false
+  const filteredRevenueData = getFilteredData(revenueData, (item, f) => {
+    if (f.timeRange && f.timeRange !== "30d") return false
     return true
   })
 
@@ -229,7 +228,7 @@ export default function ExecutiveDashboard() {
         />
       </div>
 
-      {/* Revenue and Profit Trends */}
+      {/* Revenue & Profit */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <InteractiveChart
           title="Revenue & Profit Trends"
@@ -298,7 +297,7 @@ export default function ExecutiveDashboard() {
         </InteractiveChart>
       </div>
 
-      {/* Regional Performance and Growth */}
+      {/* Regional Performance & Growth */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartContainer title="Regional Revenue" description="Revenue performance by geographic region">
           <ResponsiveContainer width="100%" height={300}>
@@ -357,9 +356,9 @@ export default function ExecutiveDashboard() {
             data={treemapData}
             dataKey="size"
             aspectRatio={4 / 3}
-            stroke="#fff"
-            strokeWidth={2}
-            content={({ root, depth, x, y, width, height, index, payload, colors, name }) => {
+            // NOTE: Treemap does NOT accept strokeWidth prop; style in the rect below instead
+            content={(nodeProps: any) => {
+              const { x, y, width, height, index, payload, name } = nodeProps
               const fillColor = payload?.fill || chartColors[index % chartColors.length]
               const displayName = name || payload?.name || "Unknown"
               const displaySize = payload?.size || 0
