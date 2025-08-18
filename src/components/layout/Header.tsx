@@ -11,7 +11,7 @@ import {
   Moon,
   Menu,
   X,
-  SlidersHorizontal, // <- note the plural "Sliders"
+  SlidersHorizontal, // correct Lucide name
   LineChart,
   Briefcase,
   Calculator,
@@ -23,8 +23,7 @@ import {
   LayoutDashboard,
 } from "lucide-react"
 
-// If you have a SavedViews component, keep this import.
-// If not, you can safely remove it.
+// If you don't have this, remove the import and the <SavedViews /> usage.
 import SavedViews from "../saved-views/saved-views"
 
 type LinkItem = {
@@ -33,7 +32,6 @@ type LinkItem = {
   Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
 }
 
-// Single source of truth for the nav (used in mobile drawer)
 const NAV_LINKS: LinkItem[] = [
   { href: "/dashboard/executive",        title: "Executive",         Icon: LineChart },
   { href: "/dashboard/sales",            title: "Sales",             Icon: Briefcase },
@@ -70,16 +68,13 @@ export default function Header() {
   const dialogRef = React.useRef<HTMLDialogElement | null>(null)
   const openDrawer = () => dialogRef.current?.showModal()
   const closeDrawer = () => dialogRef.current?.close()
-
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeDrawer() }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [])
-
   const go = (href: string) => {
     router.push(href)
-    // close after navigation tick to avoid abrupt paint
     setTimeout(closeDrawer, 10)
   }
 
@@ -89,17 +84,17 @@ export default function Header() {
         <div className="flex h-14 items-center gap-3">
           {/* Mobile: hamburger */}
           <button
-            className="lg:hidden inline-flex items-center justify-center rounded-md border px-2.5 py-2"
+            className="lg:hidden inline-flex items-center justify-center rounded-md border bg-card/60 px-2.5 py-2 hover:bg-card"
             onClick={openDrawer}
             aria-label="Open menu"
           >
             <Menu className="h-4 w-4" />
           </button>
 
-          {/* Home button */}
+          {/* Home */}
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-md border px-2.5 py-2 text-sm hover:bg-card"
+            className="inline-flex items-center gap-2 rounded-md border bg-card/60 px-2.5 py-2 text-sm hover:bg-card"
             aria-label="Home"
           >
             <Home className="h-4 w-4" />
@@ -123,7 +118,7 @@ export default function Header() {
             {/* Density */}
             <button
               onClick={toggleDensity}
-              className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-2 text-sm hover:bg-card"
+              className="inline-flex items-center gap-1.5 rounded-md border bg-card/60 px-2.5 py-2 text-sm hover:bg-card"
               aria-label="Toggle density"
               title="Toggle density"
             >
@@ -136,7 +131,7 @@ export default function Header() {
             {/* Theme */}
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="inline-flex items-center justify-center rounded-md border p-2"
+              className="inline-flex items-center justify-center rounded-md border bg-card/60 p-2 hover:bg-card"
               aria-label="Toggle theme"
               title="Toggle theme"
             >
@@ -151,45 +146,88 @@ export default function Header() {
         ref={dialogRef}
         aria-modal="true"
         role="dialog"
-        className="backdrop:bg-black/40 rounded-xl p-0 border w-[90vw] max-w-sm"
+        className="backdrop:bg-black/45 p-0"
       >
-        <div className="flex items-center justify-between border-b p-3">
-          <span className="text-sm font-medium">Menu</span>
-          <button onClick={closeDrawer} className="rounded-md border p-1.5" aria-label="Close menu">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        {/* Panel with “glass” look */}
+        <div className="m-0 w-[92vw] max-w-xs rounded-xl border bg-background/90 supports-[backdrop-filter]:backdrop-blur shadow-xl overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b px-3 py-2.5 bg-card/70">
+            <span className="text-sm font-medium">Menu</span>
+            <button onClick={closeDrawer} className="rounded-md border bg-card/60 p-1.5 hover:bg-card" aria-label="Close menu">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-        <nav className="p-2">
-          {/* Home in drawer */}
-          <button
-            onClick={() => go("/")}
-            className={[
-              "w-full text-left flex items-center gap-2 rounded-md px-3 py-2 text-sm mb-1",
-              pathname === "/" ? "bg-primary/10 border border-primary/20" : "hover:bg-card",
-            ].join(" ")}
-          >
-            <Home className={["h-4 w-4", pathname === "/" ? "text-primary" : "text-muted-foreground"].join(" ")} />
-            <span>Home</span>
-          </button>
+          {/* Nav */}
+          <nav className="max-h-[70vh] overflow-y-auto p-2">
+            {/* Home item */}
+            <button
+              onClick={() => go("/")}
+              className={[
+                "w-full text-left flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+                pathname === "/"
+                  ? "bg-primary/10 ring-1 ring-primary/25"
+                  : "hover:bg-card",
+              ].join(" ")}
+            >
+              <span className={[
+                "grid place-items-center h-6 w-6 rounded-md border shrink-0",
+                pathname === "/" ? "border-primary/30 text-primary" : "border-border text-muted-foreground"
+              ].join(" ")}>
+                <Home className="h-3.5 w-3.5" />
+              </span>
+              <span className="truncate">Home</span>
+            </button>
 
-          {NAV_LINKS.map(({ href, title, Icon }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`)
-            return (
+            <div className="my-2 h-px bg-border/70" />
+
+            {NAV_LINKS.map(({ href, title, Icon }) => {
+              const active = pathname === href || pathname.startsWith(`${href}/`)
+              return (
+                <button
+                  key={href}
+                  onClick={() => go(href)}
+                  className={[
+                    "w-full text-left flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+                    active
+                      ? "bg-primary/10 ring-1 ring-primary/25"
+                      : "hover:bg-card",
+                  ].join(" ")}
+                >
+                  <span
+                    className={[
+                      "grid place-items-center h-6 w-6 rounded-md border shrink-0",
+                      active ? "border-primary/30 text-primary" : "border-border text-muted-foreground",
+                    ].join(" ")}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="truncate">{title}</span>
+                </button>
+              )
+            })}
+          </nav>
+
+          {/* Footer actions */}
+          <div className="border-t bg-card/70 p-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
-                key={href}
-                onClick={() => go(href)}
-                className={[
-                  "w-full text-left flex items-center gap-2 rounded-md px-3 py-2 text-sm",
-                  active ? "bg-primary/10 border border-primary/20" : "hover:bg-card",
-                ].join(" ")}
+                onClick={toggleDensity}
+                className="inline-flex items-center justify-center gap-2 rounded-md border bg-card/60 px-3 py-2 text-sm hover:bg-card"
               >
-                <Icon className={["h-4 w-4", active ? "text-primary" : "text-muted-foreground"].join(" ")} />
-                <span className="truncate">{title}</span>
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Density</span>
               </button>
-            )
-          })}
-        </nav>
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="inline-flex items-center justify-center gap-2 rounded-md border bg-card/60 px-3 py-2 text-sm hover:bg-card"
+              >
+                {theme === "dark" ? <SunMedium className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                <span>Theme</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </dialog>
     </div>
   )
