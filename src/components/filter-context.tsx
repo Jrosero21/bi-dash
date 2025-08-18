@@ -1,113 +1,92 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useState, useCallback, useEffect } from "react"
+import * as React from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
-interface FilterState {
-  timeRange?: string
+export type FilterState = {
+  timeRange?: "7d" | "30d" | "90d" | "ytd"
   region?: string
   department?: string
-  category?: string
-  salesRep?: string
-  product?: string
   [key: string]: string | undefined
 }
 
-interface FilterContextType {
+type Ctx = {
   filters: FilterState
-  setFilter: (key: string, value: string | undefined) => void
-  clearFilter: (key: string) => void
-  clearAllFilters: () => void
-  isFiltered: (key: string, value: string) => boolean
-  getFilteredData: <T>(data: T[], filterFn: (item: T, filters: FilterState) => boolean) => T[]
+  setFilter: (key: keyof FilterState, value?: string) => void
+  resetFilters: () => void
+  getFilteredData: <T>(data: T[], predicate: (item: T, f: FilterState) => boolean) => T[]
 }
 
-const FilterContext = createContext<FilterContextType | undefined>(undefined)
+const FilterContext = React.createContext<Ctx | null>(null)
+
+function readFromSearch(params: URLSearchParams): FilterState {
+  const obj: FilterState = {}
+  const timeRange = params.get("range") ?? undefined
+  const region = params.get("region") ?? undefined
+  const department = params.get("dept") ?? undefined
+  if (timeRange) obj.timeRange = timeRange as FilterState["timeRange"]
+  if (region) obj.region = region
+  if (department) obj.department = department
+  // include any extra keys (future-proof)
+  params.forEach((v, k) => {
+    if (!["range", "region", "dept"].includes(k)) obj[k] = v
+  })
+  return obj
+}
 
 export function FilterProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const sp = useSearchParams()
-  const [filters, setFilters] = useState<FilterState>({})
+  const searchParams = useSearchParams()
 
-  // 1) Keep context in-sync with URL (read on URL changes)
-  useEffect(() => {
-    const next: FilterState = {}
-    sp.forEach((v, k) => {
-      // only store first occurrence per key
-      if (!(k in next)) next[k] = v
-    })
-    setFilters(next)
-  }, [sp])
+  const [filters, setFilters] = React.useState<FilterState>(() => readFromSearch(searchParams))
 
-  // 2) Write helpers that also update the URL
-  const setFilter = useCallback(
-    (key: string, value: string | undefined) => {
+  // keep local state in sync if the URL changes (Back/Forward)
+  React.useEffect(() => {
+    setFilters(readFromSearch(searchParams))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()])
+
+  const setFilter = React.useCallback(
+    (key: keyof FilterState, value?: string) => {
       setFilters((prev) => {
-        const draft = { ...prev }
-        if (value == null || value === "") delete draft[key]
-        else draft[key] = value
-
-        const next = new URLSearchParams(sp.toString())
-        if (value == null || value === "") next.delete(key)
-        else next.set(key, value)
-
-        router.replace(`${pathname}?${next.toString()}`, { scroll: false })
-        return draft
+        const next = { ...prev }
+        if (value == null || value === "") delete next[key]
+        else next[key] = value
+        // mirror to URL
+        const sp = new URLSearchParams(searchParams.toString())
+        const mapKey = key === "timeRange" ? "range" : key === "department" ? "dept" : (key as string)
+        if (value == null || value === "") sp.delete(mapKey)
+        else sp.set(mapKey, value)
+        router.replace(`${pathname}?${sp.toString()}`, { scroll: false })
+        return next
       })
     },
-    [router, pathname, sp],
+    [pathname, router, searchParams]
   )
 
-  const clearFilter = useCallback(
-    (key: string) => {
-      setFilters((prev) => {
-        const draft = { ...prev }
-        delete draft[key]
-
-        const next = new URLSearchParams(sp.toString())
-        next.delete(key)
-        router.replace(`${pathname}?${next.toString()}`, { scroll: false })
-        return draft
-      })
-    },
-    [router, pathname, sp],
-  )
-
-  const clearAllFilters = useCallback(() => {
+  const resetFilters = React.useCallback(() => {
     setFilters({})
-    const next = new URLSearchParams(sp.toString())
-    // remove all known keys currently in state
-    Object.keys(filters).forEach((k) => next.delete(k))
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false })
-  }, [router, pathname, sp, filters])
+    router.replace(pathname, { scroll: false })
+  }, [pathname, router])
 
-  const isFiltered = useCallback((key: string, value: string) => filters[key] === value, [filters])
-
-  const getFilteredData = useCallback(
-    <T,>(data: T[], filterFn: (item: T, filters: FilterState) => boolean) => data.filter((item) => filterFn(item, filters)),
-    [filters],
+  const getFilteredData = React.useCallback(
+    <T,>(data: T[], predicate: (item: T, f: FilterState) => boolean) => {
+      try {
+        return data.filter((item) => predicate(item, filters))
+      } catch {
+        return data
+      }
+    },
+    [filters]
   )
 
-  return (
-    <FilterContext.Provider value={{ filters, setFilter, clearFilter, clearAllFilters, isFiltered, getFilteredData }}>
-      {children}
-    </FilterContext.Provider>
-  )
+  const value: Ctx = { filters, setFilter, resetFilters, getFilteredData }
+  return <FilterContext.Provider value={value}>{children}</FilterContext.Provider>
 }
 
 export function useFilters() {
-  const ctx = useContext(FilterContext)
-  if (!ctx) {
-    return {
-      filters: {},
-      setFilter: () => {},
-      clearFilter: () => {},
-      clearAllFilters: () => {},
-      isFiltered: () => false,
-      getFilteredData: <T,>(data: T[]) => data,
-    }
-  }
+  const ctx = React.useContext(FilterContext)
+  if (!ctx) throw new Error("useFilters must be used within <FilterProvider>")
   return ctx
 }

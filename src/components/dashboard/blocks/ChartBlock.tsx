@@ -27,7 +27,6 @@ export default function ChartBlock({ block }: { block: ChartBlockType }) {
     : ["--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5"]
   ).map((v) => `hsl(var(${v}))`)
 
-  // Render exactly ONE chart element to satisfy Recharts' TS types
   const chart = (() => {
     switch (block.type) {
       case "line":
@@ -50,7 +49,6 @@ export default function ChartBlock({ block }: { block: ChartBlockType }) {
             ))}
           </LineChart>
         )
-
       case "bar":
         return (
           <BarChart data={block.data}>
@@ -64,7 +62,6 @@ export default function ChartBlock({ block }: { block: ChartBlockType }) {
             ))}
           </BarChart>
         )
-
       case "pie":
         return (
           <PieChart>
@@ -79,7 +76,7 @@ export default function ChartBlock({ block }: { block: ChartBlockType }) {
               paddingAngle={4}
               label
             >
-              {block.data.map((_: any, i: number) => (
+              {block.data.map((_, i) => (
                 <Cell key={i} fill={colors[i % colors.length]} />
               ))}
             </Pie>
@@ -87,7 +84,6 @@ export default function ChartBlock({ block }: { block: ChartBlockType }) {
             <Legend />
           </PieChart>
         )
-
       case "scatter":
       default:
         return (

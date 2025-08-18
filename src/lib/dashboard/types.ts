@@ -1,35 +1,38 @@
-export type KpiItem = {
-  title: string
-  value: number | string
-  format?: "number" | "currency" | "percent"
-  delta?: number // negative => red, non-negative => green
-  note?: string
-  icon?: "dollar" | "users" | "margin" | "nps" | "generic"
-}
-
-export type KpiBlock = {
-  kind: "kpi"
-  items: KpiItem[]
-}
+export type ChartKind = "line" | "bar" | "pie" | "scatter"
 
 export type ChartBlock = {
   kind: "chart"
   title: string
   description?: string
-  type: "line" | "bar" | "pie" | "scatter"
-  data: any[]
+  type: ChartKind
+  data: Record<string, unknown>[]
   xKey?: string
-  yKeys?: string[]       // for line/bar/scatter
-  valueKey?: string      // for pie
-  colorKeys?: string[]   // CSS vars like --chart-1, --chart-2
+  yKeys?: string[]
+  valueKey?: string // for pie
   height?: number
+  colorKeys?: string[] // CSS vars e.g. ["--chart-1", ...]
 }
+
+export type KpiIcon = "dollar" | "users" | "margin" | "nps" | "generic"
+
+export type KpiItem = {
+  title: string
+  value: number
+  format?: "currency" | "percentage" | "number"
+  delta?: number
+  icon?: KpiIcon
+}
+
+export type KpiBlock = {
+  kind: "kpi"
+  title?: string
+  items: KpiItem[]
+}
+
+export type Block = ChartBlock | KpiBlock
 
 export type DashboardConfig = {
-  slug: string
   title: string
   description?: string
-  blocks: Array<KpiBlock | ChartBlock>
+  blocks: Block[]
 }
-
-export type DashboardRegistry = Record<string, DashboardConfig>

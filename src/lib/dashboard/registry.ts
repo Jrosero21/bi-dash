@@ -1,87 +1,52 @@
-import type { DashboardRegistry } from "~/lib/dashboard/types"
+import type { DashboardConfig } from "./types"
 
-// sample data
-const vendorPerformance = [
-  { month: "Jan", onTime: 87.5, quality: 92.1, satisfaction: 88.5 },
-  { month: "Feb", onTime: 89.2, quality: 93.8, satisfaction: 90.2 },
-  { month: "Mar", onTime: 91.8, quality: 94.5, satisfaction: 91.8 },
-  { month: "Apr", onTime: 88.9, quality: 91.2, satisfaction: 87.9 },
-  { month: "May", onTime: 93.1, quality: 95.7, satisfaction: 93.5 },
-  { month: "Jun", onTime: 94.7, quality: 96.2, satisfaction: 94.8 },
-]
+// Simple demo data (you can replace with API data later)
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+const revenueSeries = months.map((m, i) => {
+  const revenue = 1800000 + i * 140000
+  const profit = Math.round(revenue * 0.24)
+  const expenses = revenue - profit
+  return { month: m, revenue, profit, expenses }
+})
 
-const spendByCategory = [
-  { category: "Technology", amount: 3_200_000 },
-  { category: "Logistics", amount: 2_800_000 },
-  { category: "Materials", amount: 2_100_000 },
-  { category: "Services", amount: 1_600_000 },
-  { category: "Equipment", amount: 1_200_000 },
-]
-
-export const dashboards: DashboardRegistry = {
-  executive: {
-    slug: "executive",
-    title: "Executive",
-    description: "Company-wide KPIs & trends",
+export const dashboards: Record<string, DashboardConfig> = {
+  sample: {
+    title: "Sample Analytics",
+    description: "Minimal dashboard driven by the registry.",
     blocks: [
       {
         kind: "kpi",
         items: [
-          { title: "Revenue YTD", value: 12_450_000, format: "currency", delta: 8.4, note: "vs last YTD", icon: "dollar" },
-          { title: "Active Customers", value: 5_870, format: "number", delta: -4.1, note: "last 30 days", icon: "users" },
-          { title: "Gross Margin", value: 61.8, format: "percent", delta: 1.2, note: "vs last quarter", icon: "margin" },
-          { title: "NPS", value: 47, format: "number", delta: 0, note: "new survey", icon: "nps" },
+          { title: "Revenue YTD", value: 12450000, format: "currency", delta: 2.8, icon: "dollar" },
+          { title: "Active Customers", value: 5870, delta: 1.5, icon: "users" },
+          { title: "Gross Margin", value: 61.8, format: "percentage", delta: -1.2, icon: "margin" },
+          { title: "NPS", value: 47, delta: 5, icon: "nps" },
         ],
       },
       {
         kind: "chart",
-        title: "Margin & Satisfaction",
-        description: "Demo from vendor performance data",
+        title: "Revenue & Profit (6m)",
+        description: "Synthetic series to show registry rendering.",
         type: "line",
-        data: vendorPerformance,
+        data: revenueSeries,
         xKey: "month",
-        yKeys: ["quality", "satisfaction"],
-        colorKeys: ["--chart-1", "--chart-4"],
-        height: 280,
-      },
-    ],
-  },
-
-  "vendor-relations": {
-    slug: "vendor-relations",
-    title: "Vendor Relations",
-    description: "Supplier performance & spend",
-    blocks: [
-      {
-        kind: "kpi",
-        items: [
-          { title: "Vendor Performance", value: 94.7, format: "percent", delta: 7.2, note: "vs last quarter", icon: "margin" },
-          { title: "Total Spend", value: 10_900_000, format: "currency", delta: -5.8, note: "vs last quarter", icon: "dollar" },
-          { title: "On-Time Delivery", value: 94.7, format: "percent", delta: 7.2, note: "vs last quarter", icon: "generic" },
-          { title: "Active Vendors", value: 63, format: "number", delta: -8.7, note: "vs last quarter", icon: "users" },
-        ],
-      },
-      {
-        kind: "chart",
-        title: "Vendor Performance Trends",
-        description: "Monthly performance metrics",
-        type: "line",
-        data: vendorPerformance,
-        xKey: "month",
-        yKeys: ["onTime", "quality", "satisfaction"],
-        colorKeys: ["--chart-2", "--chart-1", "--chart-4"],
+        yKeys: ["revenue", "profit"],
         height: 300,
+        colorKeys: ["--chart-1", "--chart-2"],
       },
       {
         kind: "chart",
-        title: "Spend by Category",
-        description: "Vendor spend breakdown",
+        title: "Revenue Mix",
+        description: "Pie driven by line series totals.",
         type: "pie",
-        data: spendByCategory,
-        xKey: "category",
-        valueKey: "amount",
-        colorKeys: ["--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5"],
-        height: 320,
+        data: [
+          { name: "Revenue", value: revenueSeries.reduce((s, r) => s + (r.revenue as number), 0) },
+          { name: "Profit", value: revenueSeries.reduce((s, r) => s + (r.profit as number), 0) },
+          { name: "Expenses", value: revenueSeries.reduce((s, r) => s + (r.expenses as number), 0) },
+        ],
+        valueKey: "value",
+        height: 280,
+        colorKeys: ["--chart-1", "--chart-2", "--chart-3"],
       },
     ],
   },

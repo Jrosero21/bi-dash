@@ -1,10 +1,10 @@
 "use client"
 
-import { KPICard } from "~/components/kpi-card"
-import { ChartContainer } from "~/components/chart-container"
-import { EnhancedDashboardFilters } from "~/components/enhanced-dashboard-filters"
-import { InteractiveChart } from "~/components/interactive-chart"
-import { useFilters } from "~/components/filter-context"
+import { KPICard } from "../../../components/kpi-card"
+import { ChartContainer } from "../../../components/chart-container"
+import { EnhancedDashboardFilters } from "../../../components/enhanced-dashboard-filters"
+import { InteractiveChart } from "../../../components/interactive-chart"
+import { FilterProvider, useFilters } from "../../../components/filter-context"
 
 import {
   LineChart,
@@ -28,14 +28,8 @@ import {
 import { TrendingUp, DollarSign, Users, Target, Building, Globe, Award, Zap } from "lucide-react"
 
 const chartColors = [
-  "#3B82F6", // Blue
-  "#10B981", // Emerald
-  "#F59E0B", // Amber
-  "#EF4444", // Red
-  "#8B5CF6", // Violet
-  "#06B6D4", // Cyan
-  "#F97316", // Orange
-  "#84CC16", // Lime
+  "#3B82F6", "#10B981", "#F59E0B", "#EF4444",
+  "#8B5CF6", "#06B6D4", "#F97316", "#84CC16",
 ]
 
 // Sample data
@@ -65,89 +59,29 @@ const regionalData = [
 ]
 
 const treemapData = [
-  {
-    name: "Enterprise Software",
-    size: 8500000,
-    fill: chartColors[0],
-    children: [
-      { name: "CRM Platform", size: 3200000, fill: chartColors[0] },
-      { name: "ERP Solutions", size: 2800000, fill: "#2563EB" },
-      { name: "Analytics Suite", size: 1500000, fill: "#1D4ED8" },
-      { name: "Security Tools", size: 1000000, fill: "#1E40AF" },
-    ],
-  },
-  {
-    name: "Cloud Services",
-    size: 6200000,
-    fill: chartColors[1],
-    children: [
-      { name: "Infrastructure", size: 2500000, fill: chartColors[1] },
-      { name: "Platform Services", size: 2000000, fill: "#059669" },
-      { name: "Storage Solutions", size: 1200000, fill: "#047857" },
-      { name: "Backup & Recovery", size: 500000, fill: "#065F46" },
-    ],
-  },
-  {
-    name: "Mobile Applications",
-    size: 4800000,
-    fill: chartColors[2],
-    children: [
-      { name: "iOS Apps", size: 2200000, fill: chartColors[2] },
-      { name: "Android Apps", size: 1800000, fill: "#D97706" },
-      { name: "Cross-Platform", size: 800000, fill: "#B45309" },
-    ],
-  },
-  {
-    name: "AI & Machine Learning",
-    size: 950000,
-    fill: chartColors[3],
-    children: [
-      { name: "Predictive Analytics", size: 450000, fill: chartColors[3] },
-      { name: "Natural Language", size: 300000, fill: "#DC2626" },
-      { name: "Computer Vision", size: 150000, fill: "#B91C1C" },
-      { name: "Automation Tools", size: 50000, fill: "#991B1B" },
-    ],
-  },
-  {
-    name: "Consulting Services",
-    size: 780000,
-    fill: chartColors[4],
-    children: [
-      { name: "Digital Transformation", size: 350000, fill: chartColors[4] },
-      { name: "System Integration", size: 250000, fill: "#7C3AED" },
-      { name: "Training & Support", size: 180000, fill: "#6D28D9" },
-    ],
-  },
-  {
-    name: "Hardware Solutions",
-    size: 620000,
-    fill: chartColors[5],
-    children: [
-      { name: "Servers & Storage", size: 320000, fill: chartColors[5] },
-      { name: "Networking Equipment", size: 200000, fill: "#0891B2" },
-      { name: "IoT Devices", size: 100000, fill: "#0E7490" },
-    ],
-  },
-  {
-    name: "Cybersecurity",
-    size: 480000,
-    fill: chartColors[6],
-    children: [
-      { name: "Threat Detection", size: 220000, fill: chartColors[6] },
-      { name: "Identity Management", size: 160000, fill: "#EA580C" },
-      { name: "Compliance Tools", size: 100000, fill: "#C2410C" },
-    ],
-  },
-  {
-    name: "Data Analytics",
-    size: 350000,
-    fill: chartColors[7],
-    children: [
-      { name: "Business Intelligence", size: 180000, fill: chartColors[7] },
-      { name: "Data Visualization", size: 120000, fill: "#65A30D" },
-      { name: "Reporting Tools", size: 50000, fill: "#4D7C0F" },
-    ],
-  },
+  { name: "Enterprise Software", size: 8500000, fill: chartColors[0], children: [
+    { name: "CRM Platform", size: 3200000, fill: chartColors[0] },
+    { name: "ERP Solutions", size: 2800000, fill: "#2563EB" },
+    { name: "Analytics Suite", size: 1500000, fill: "#1D4ED8" },
+    { name: "Security Tools", size: 1000000, fill: "#1E40AF" },
+  ]},
+  { name: "Cloud Services", size: 6200000, fill: chartColors[1], children: [
+    { name: "Infrastructure", size: 2500000, fill: chartColors[1] },
+    { name: "Platform Services", size: 2000000, fill: "#059669" },
+    { name: "Storage Solutions", size: 1200000, fill: "#047857" },
+    { name: "Backup & Recovery", size: 500000, fill: "#065F46" },
+  ]},
+  { name: "Mobile Applications", size: 4800000, fill: chartColors[2], children: [
+    { name: "iOS Apps", size: 2200000, fill: chartColors[2] },
+    { name: "Android Apps", size: 1800000, fill: "#D97706" },
+    { name: "Cross-Platform", size: 800000, fill: "#B45309" },
+  ]},
+  { name: "AI & Machine Learning", size: 950000, fill: chartColors[3], children: [
+    { name: "Predictive Analytics", size: 450000, fill: chartColors[3] },
+    { name: "Natural Language", size: 300000, fill: "#DC2626" },
+    { name: "Computer Vision", size: 150000, fill: "#B91C1C" },
+    { name: "Automation Tools", size: 50000, fill: "#991B1B" },
+  ]},
 ]
 
 const quarterlyGrowth = [
@@ -165,7 +99,7 @@ const formatCurrency = (value: number) => {
   return `$${value}`
 }
 
-export default function ExecutiveDashboard() {
+function ExecutiveInner() {
   const { filters, getFilteredData } = useFilters()
 
   const filteredRevenueData = getFilteredData(revenueData, (item, f) => {
@@ -185,110 +119,35 @@ export default function ExecutiveDashboard() {
 
       <EnhancedDashboardFilters />
 
-      {/* Key Metrics */}
+      {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard
-          title="Total Revenue"
-          value={34200000}
-          format="currency"
-          change={18.2}
-          changeLabel="vs last quarter"
-          trend="up"
-          icon={<DollarSign className="h-4 w-4" />}
-          className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20"
-        />
-        <KPICard
-          title="Net Profit"
-          value={8450000}
-          format="currency"
-          change={22.5}
-          changeLabel="vs last quarter"
-          trend="up"
-          icon={<TrendingUp className="h-4 w-4" />}
-          className="bg-gradient-to-br from-chart-3/5 to-chart-3/10 border-chart-3/20"
-        />
-        <KPICard
-          title="Active Customers"
-          value={125400}
-          change={12.8}
-          changeLabel="vs last month"
-          trend="up"
-          icon={<Users className="h-4 w-4" />}
-          className="bg-gradient-to-br from-chart-2/5 to-chart-2/10 border-chart-2/20"
-        />
-        <KPICard
-          title="Market Share"
-          value={24.7}
-          format="percentage"
-          change={3.2}
-          changeLabel="vs last year"
-          trend="up"
-          icon={<Target className="h-4 w-4" />}
-          className="bg-gradient-to-br from-chart-4/5 to-chart-4/10 border-chart-4/20"
-        />
+        <KPICard title="Total Revenue" value={34200000} format="currency" change={18.2} changeLabel="vs last quarter" trend="up" icon={<DollarSign className="h-4 w-4" />} className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20" />
+        <KPICard title="Net Profit" value={8450000} format="currency" change={22.5} changeLabel="vs last quarter" trend="up" icon={<TrendingUp className="h-4 w-4" />} className="bg-gradient-to-br from-chart-3/5 to-chart-3/10 border-chart-3/20" />
+        <KPICard title="Active Customers" value={125400} change={12.8} changeLabel="vs last month" trend="up" icon={<Users className="h-4 w-4" />} className="bg-gradient-to-br from-chart-2/5 to-chart-2/10 border-chart-2/20" />
+        <KPICard title="Market Share" value={24.7} format="percentage" change={3.2} changeLabel="vs last year" trend="up" icon={<Target className="h-4 w-4" />} className="bg-gradient-to-br from-chart-4/5 to-chart-4/10 border-chart-4/20" />
       </div>
 
       {/* Revenue & Profit */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <InteractiveChart
-          title="Revenue & Profit Trends"
-          description="Monthly revenue and profit over the last 6 months"
-          filterKey="month"
-          onDataClick={handleChartInteraction}
-        >
+        <InteractiveChart title="Revenue & Profit Trends" description="Monthly revenue and profit over the last 6 months" filterKey="month" onDataClick={handleChartInteraction}>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={filteredRevenueData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis tickFormatter={formatCurrency} />
-              <Tooltip
-                formatter={(value: number, name: string) => [
-                  formatCurrency(value),
-                  name.charAt(0).toUpperCase() + name.slice(1),
-                ]}
-              />
+              <Tooltip formatter={(value: number, name: string) => [formatCurrency(value), name.charAt(0).toUpperCase() + name.slice(1)]} />
               <Legend />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                stackId="1"
-                stroke={chartColors[0]}
-                fill={chartColors[0]}
-                fillOpacity={0.6}
-              />
-              <Area
-                type="monotone"
-                dataKey="profit"
-                stackId="2"
-                stroke={chartColors[1]}
-                fill={chartColors[1]}
-                fillOpacity={0.8}
-              />
+              <Area type="monotone" dataKey="revenue" stackId="1" stroke={chartColors[0]} fill={chartColors[0]} fillOpacity={0.6} />
+              <Area type="monotone" dataKey="profit"  stackId="2" stroke={chartColors[1]} fill={chartColors[1]} fillOpacity={0.8} />
             </AreaChart>
           </ResponsiveContainer>
         </InteractiveChart>
 
-        <InteractiveChart
-          title="Department Performance"
-          description="Revenue contribution by department"
-          filterKey="department"
-          onDataClick={handleChartInteraction}
-        >
+        <InteractiveChart title="Department Performance" description="Revenue contribution by department" filterKey="department" onDataClick={handleChartInteraction}>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie
-                data={departmentPerformance}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {departmentPerformance.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
+              <Pie data={departmentPerformance} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                {departmentPerformance.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
               </Pie>
               <Tooltip formatter={(value: number) => [`${value}%`, "Contribution"]} />
               <Legend />
@@ -305,14 +164,9 @@ export default function ExecutiveDashboard() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" tickFormatter={formatCurrency} />
               <YAxis dataKey="region" type="category" width={100} />
-              <Tooltip
-                formatter={(value: number) => [formatCurrency(value), "Revenue"]}
-                labelFormatter={(label) => `Region: ${label}`}
-              />
+              <Tooltip formatter={(value: number) => [formatCurrency(value), "Revenue"]} labelFormatter={(label) => `Region: ${label}`} />
               <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
-                {regionalData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
+                {regionalData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -326,37 +180,20 @@ export default function ExecutiveDashboard() {
               <YAxis tickFormatter={(value) => `${value}%`} />
               <Tooltip formatter={(value: number) => [`${value}%`, "Growth"]} />
               <Legend />
-              <Line
-                type="monotone"
-                dataKey="growth"
-                stroke={chartColors[1]}
-                strokeWidth={3}
-                dot={{ fill: chartColors[1], strokeWidth: 2, r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="target"
-                stroke={chartColors[3]}
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={{ fill: chartColors[3], strokeWidth: 2, r: 4 }}
-              />
+              <Line type="monotone" dataKey="growth" stroke={chartColors[1]} strokeWidth={3} dot={{ fill: chartColors[1], strokeWidth: 2, r: 6 }} />
+              <Line type="monotone" dataKey="target" stroke={chartColors[3]} strokeWidth={2} strokeDasharray="5 5" dot={{ fill: chartColors[3], strokeWidth: 2, r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         </ChartContainer>
       </div>
 
       {/* Product Revenue Treemap */}
-      <ChartContainer
-        title="Product Revenue Distribution"
-        description="Revenue breakdown by product lines and categories"
-      >
+      <ChartContainer title="Product Revenue Distribution" description="Revenue breakdown by product lines and categories">
         <ResponsiveContainer width="100%" height={500}>
           <Treemap
             data={treemapData}
             dataKey="size"
             aspectRatio={4 / 3}
-            // NOTE: Treemap does NOT accept strokeWidth prop; style in the rect below instead
             content={(nodeProps: any) => {
               const { x, y, width, height, index, payload, name } = nodeProps
               const fillColor = payload?.fill || chartColors[index % chartColors.length]
@@ -367,76 +204,22 @@ export default function ExecutiveDashboard() {
 
               return (
                 <g>
-                  <rect
-                    x={x}
-                    y={y}
-                    width={width}
-                    height={height}
-                    style={{
-                      fill: fillColor,
-                      stroke: "#fff",
-                      strokeWidth: 2,
-                      strokeOpacity: 1,
-                      opacity: 0.9,
-                    }}
-                  />
+                  <rect x={x} y={y} width={width} height={height} style={{ fill: fillColor, stroke: "#fff", strokeWidth: 2, strokeOpacity: 1, opacity: 0.9 }} />
                   {isLargeEnough && (
                     <>
-                      <text
-                        x={x + width / 2}
-                        y={y + height / 2 - 12}
-                        textAnchor="middle"
-                        fill="#fff"
-                        fontSize="14"
-                        fontWeight="bold"
-                        style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}
-                      >
-                        {displayName}
-                      </text>
-                      <text
-                        x={x + width / 2}
-                        y={y + height / 2 + 4}
-                        textAnchor="middle"
-                        fill="#fff"
-                        fontSize="12"
-                        style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}
-                      >
-                        {formatCurrency(displaySize)}
-                      </text>
-                      <text
-                        x={x + width / 2}
-                        y={y + height / 2 + 18}
-                        textAnchor="middle"
-                        fill="#fff"
-                        fontSize="10"
-                        opacity={0.9}
-                        style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}
-                      >
+                      <text x={x + width / 2} y={y + height / 2 - 12} textAnchor="middle" fill="#fff" fontSize="14" fontWeight="bold" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>{displayName}</text>
+                      <text x={x + width / 2} y={y + height / 2 + 4}  textAnchor="middle" fill="#fff" fontSize="12" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>{formatCurrency(displaySize)}</text>
+                      <text x={x + width / 2} y={y + height / 2 + 18} textAnchor="middle" fill="#fff" fontSize="10" opacity={0.9} style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
                         {((displaySize / 23680000) * 100).toFixed(1)}%
                       </text>
                     </>
                   )}
                   {isMediumSize && !isLargeEnough && (
                     <>
-                      <text
-                        x={x + width / 2}
-                        y={y + height / 2 - 4}
-                        textAnchor="middle"
-                        fill="#fff"
-                        fontSize="11"
-                        fontWeight="bold"
-                        style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}
-                      >
+                      <text x={x + width / 2} y={y + height / 2 - 4} textAnchor="middle" fill="#fff" fontSize="11" fontWeight="bold" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
                         {displayName.length > 12 ? displayName.substring(0, 12) + "..." : displayName}
                       </text>
-                      <text
-                        x={x + width / 2}
-                        y={y + height / 2 + 8}
-                        textAnchor="middle"
-                        fill="#fff"
-                        fontSize="9"
-                        style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}
-                      >
+                      <text x={x + width / 2} y={y + height / 2 + 8} textAnchor="middle" fill="#fff" fontSize="9" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
                         {formatCurrency(displaySize)}
                       </text>
                     </>
@@ -450,41 +233,20 @@ export default function ExecutiveDashboard() {
 
       {/* Additional KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard
-          title="Employee Count"
-          value={2847}
-          change={5.2}
-          changeLabel="vs last quarter"
-          trend="up"
-          icon={<Building className="h-4 w-4" />}
-        />
-        <KPICard
-          title="Global Offices"
-          value={24}
-          change={2}
-          changeLabel="new this year"
-          trend="up"
-          icon={<Globe className="h-4 w-4" />}
-        />
-        <KPICard
-          title="Customer Satisfaction"
-          value={94.2}
-          format="percentage"
-          change={1.8}
-          changeLabel="vs last survey"
-          trend="up"
-          icon={<Award className="h-4 w-4" />}
-        />
-        <KPICard
-          title="Operational Efficiency"
-          value={87.5}
-          format="percentage"
-          change={3.4}
-          changeLabel="vs last quarter"
-          trend="up"
-          icon={<Zap className="h-4 w-4" />}
-        />
+        <KPICard title="Employee Count" value={2847} change={5.2} changeLabel="vs last quarter" trend="up" icon={<Building className="h-4 w-4" />} />
+        <KPICard title="Global Offices" value={24}   change={2}   changeLabel="new this year"      trend="up" icon={<Globe className="h-4 w-4" />} />
+        <KPICard title="Customer Satisfaction" value={94.2} format="percentage" change={1.8} changeLabel="vs last survey" trend="up" icon={<Award className="h-4 w-4" />} />
+        <KPICard title="Operational Efficiency" value={87.5} format="percentage" change={3.4} changeLabel="vs last quarter" trend="up" icon={<Zap className="h-4 w-4" />} />
       </div>
     </div>
+  )
+}
+
+export default function ExecutiveDashboard() {
+  // Local provider to avoid global layout changes
+  return (
+    <FilterProvider>
+      <ExecutiveInner />
+    </FilterProvider>
   )
 }
